@@ -69,6 +69,17 @@ export const Camera = React.forwardRef<unknown, CameraProps>(
 
       return false;
     };
+    
+
+    const getVideoTrack = ()=>{
+      if (stream && navigator?.mediaDevices && !!mounted.current) {
+        const [track] = stream.getTracks();
+        return track;
+      }
+      return null;
+    }
+
+   
 
     useEffect(() => {
       switchTorch(torch);
@@ -141,6 +152,7 @@ export const Camera = React.forwardRef<unknown, CameraProps>(
       getNumberOfCameras: () => {
         return numberOfCameras;
       },
+      getVideoTrack,
       toggleTorch: () => {
         const torchVal = !torch;
         setTorch(torchVal);
@@ -260,6 +272,7 @@ const initCameraStream = async (
     navigator.mediaDevices
       .getUserMedia(constraints)
       .then((stream) => {
+        
         if (isMounted) {
           setStream(handleSuccess(stream, setNumberOfCameras));
         }

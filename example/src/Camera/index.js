@@ -93,6 +93,13 @@ var Camera = React.forwardRef(function (_a, ref) {
     var _m = useState(false), permissionDenied = _m[0], setPermissionDenied = _m[1];
     var _o = useState(false), torchSupported = _o[0], setTorchSupported = _o[1];
     var _p = useState(false), torch = _p[0], setTorch = _p[1];
+    var mounted = useRef(false);
+    useEffect(function () {
+        mounted.current = true;
+        return function () {
+            mounted.current = false;
+        };
+    }, []);
     useEffect(function () {
         numberOfCamerasCallback(numberOfCameras);
     }, [numberOfCameras]);
@@ -103,7 +110,7 @@ var Camera = React.forwardRef(function (_a, ref) {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        if (!(stream && (navigator === null || navigator === void 0 ? void 0 : navigator.mediaDevices))) return [3 /*break*/, 4];
+                        if (!(stream && (navigator === null || navigator === void 0 ? void 0 : navigator.mediaDevices) && !!mounted.current)) return [3 /*break*/, 4];
                         supportedConstraints = navigator.mediaDevices.getSupportedConstraints();
                         track = stream.getTracks()[0];
                         if (!(supportedConstraints && 'torch' in supportedConstraints && track)) return [3 /*break*/, 4];
@@ -121,6 +128,13 @@ var Camera = React.forwardRef(function (_a, ref) {
                 }
             });
         });
+    };
+    var getVideoTrack = function () {
+        if (stream && (navigator === null || navigator === void 0 ? void 0 : navigator.mediaDevices) && !!mounted.current) {
+            var track = stream.getTracks()[0];
+            return track;
+        }
+        return null;
     };
     useEffect(function () {
         switchTorch(torch);
@@ -187,6 +201,7 @@ var Camera = React.forwardRef(function (_a, ref) {
         getNumberOfCameras: function () {
             return numberOfCameras;
         },
+        getVideoTrack: getVideoTrack,
         toggleTorch: function () {
             var torchVal = !torch;
             setTorch(torchVal);
@@ -195,7 +210,7 @@ var Camera = React.forwardRef(function (_a, ref) {
         torchSupported: torchSupported,
     }); });
     useEffect(function () {
-        initCameraStream(stream, setStream, currentFacingMode, videoSourceDeviceId, setNumberOfCameras, setNotSupported, setPermissionDenied);
+        initCameraStream(stream, setStream, currentFacingMode, videoSourceDeviceId, setNumberOfCameras, setNotSupported, setPermissionDenied, !!mounted.current);
     }, [currentFacingMode, videoSourceDeviceId]);
     useEffect(function () {
         switchTorch(false).then(function (success) { return setTorchSupported(success); });
@@ -247,7 +262,7 @@ var shouldSwitchToCamera = function (currentFacingMode) { return __awaiter(void 
         }
     });
 }); };
-var initCameraStream = function (stream, setStream, currentFacingMode, videoSourceDeviceId, setNumberOfCameras, setNotSupported, setPermissionDenied) { return __awaiter(void 0, void 0, void 0, function () {
+var initCameraStream = function (stream, setStream, currentFacingMode, videoSourceDeviceId, setNumberOfCameras, setNotSupported, setPermissionDenied, isMounted) { return __awaiter(void 0, void 0, void 0, function () {
     var cameraDeviceId, switchToCamera, constraints, getWebcam;
     var _a;
     return __generator(this, function (_b) {
@@ -273,15 +288,15 @@ var initCameraStream = function (stream, setStream, currentFacingMode, videoSour
                     video: {
                         deviceId: cameraDeviceId,
                         facingMode: currentFacingMode,
-                        width: { ideal: 1920 },
-                        height: { ideal: 1920 },
                     },
                 };
                 if ((_a = navigator === null || navigator === void 0 ? void 0 : navigator.mediaDevices) === null || _a === void 0 ? void 0 : _a.getUserMedia) {
                     navigator.mediaDevices
                         .getUserMedia(constraints)
                         .then(function (stream) {
-                        setStream(handleSuccess(stream, setNumberOfCameras));
+                        if (isMounted) {
+                            setStream(handleSuccess(stream, setNumberOfCameras));
+                        }
                     })
                         .catch(function (err) {
                         handleError(err, setNotSupported, setPermissionDenied);
@@ -296,7 +311,9 @@ var initCameraStream = function (stream, setStream, currentFacingMode, videoSour
                     if (getWebcam) {
                         getWebcam(constraints, function (stream) { return __awaiter(void 0, void 0, void 0, function () {
                             return __generator(this, function (_a) {
-                                setStream(handleSuccess(stream, setNumberOfCameras));
+                                if (isMounted) {
+                                    setStream(handleSuccess(stream, setNumberOfCameras));
+                                }
                                 return [2 /*return*/];
                             });
                         }); }, function (err) {

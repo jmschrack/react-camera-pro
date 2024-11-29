@@ -11,7 +11,7 @@ export interface CameraProps {
     aspectRatio?: AspectRatio;
     numberOfCamerasCallback?(numberOfCameras: number): void;
     videoSourceDeviceId?: string | undefined;
-    errorMessages: {
+    errorMessages?: {
         noCameraAccessible?: string;
         permissionDenied?: string;
         switchCamera?: string;
@@ -24,5 +24,6 @@ export declare type CameraType = React.ForwardRefExoticComponent<CameraProps & R
     switchCamera(): FacingMode;
     getNumberOfCameras(): number;
     toggleTorch(): boolean;
+    getVideoTrack(): MediaStreamTrack | null;
     torchSupported: boolean;
 };
